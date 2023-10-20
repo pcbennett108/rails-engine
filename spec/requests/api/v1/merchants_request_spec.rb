@@ -48,7 +48,7 @@ RSpec.describe 'Merchants API' do
     end
   end
 
-  describe "it returns all the items for a merchant" do
+  describe "items for a merchant endpoint" do
     it "sends a formatted JSON response of all items for a merchant" do
       id = create(:merchant).id
       items = create_list(:item, 10, merchant_id: id)
@@ -82,6 +82,36 @@ RSpec.describe 'Merchants API' do
 
       expect(item_atttributes).to have_key(:merchant_id)
       expect(item_atttributes[:merchant_id]).to be_a(Integer)
+    end
+  end
+
+  describe "find_one merchant endpoint" do 
+    it "send a formatted JSON response for a single merchant based on a 'name' paramter" do 
+      merchant_1 = create(:merchant, name: "Dick's sporting Goods")
+      merchant_2 = create(:merchant, name: "Walmart")
+      merchant_3 = create(:merchant, name: "IME Outfitter's")
+
+      get "/api/v1/merchants/find?name=dic"
+      expect(response.status).to eq(200)
+      formatted_merchant = JSON.parse(response.body, symbolize_names: true)
+      merchant = formatted_merchant[:data]
+
+      expect(merchant).to have_key(:id)
+      expect(merchant[:id]).to be_a(String)
+
+      expect(merchant).to have_key(:type)
+      expect(merchant[:type]).to be_a(String)
+
+      expect(merchant).to have_key(:attributes)
+      expect(merchant[:attributes]).to be_an(Hash)
+    end
+    it " returns and empty hash if no data is passed to the parameter" do 
+      get "/api/v1/merchants/find?name="
+      expect(response.status).to eq(200)
+      formatted_merchant = JSON.parse(response.body, symbolize_names: true)
+      merchant = formatted_merchant[:data]
+
+      expect(merchant).to eq({id: nil, type: nil, attributes:{}})
     end
   end
 end
